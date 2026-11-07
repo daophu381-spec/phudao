@@ -75,3 +75,45 @@ Có thể bỏ hẳn hộp thoại in: tạo shortcut Chrome riêng với tham s
 
 - Công cụ bấm theo **vị trí trên màn hình**. Nếu phần mềm đổi giao diện, đổi độ phân giải/zoom màn hình, hoặc cửa sổ không phóng to như lúc ghi, hãy nhấn **F7** và ghi lại.
 - Việc **duyệt** vẫn do bạn chịu trách nhiệm: luôn xem chứng từ trước khi bấm nút. Công cụ chỉ thay bạn các thao tác bấm.
+
+---
+
+# Điền nhanh Họ tên – Số CCCD – Ngày cấp vào Chrome (F12)
+
+File `DienCCCD.js`: copy 1 dòng trong Excel (3 ô **Họ tên | Số CCCD | Ngày cấp**, thứ tự nào cũng được), chạy mã, dán vào hộp hỏi, Enter là cả 3 ô được điền, ô vừa điền viền xanh. Mã chỉ điền vào trang đang mở, **không gửi dữ liệu đi đâu**.
+
+- Tự tìm ô theo nhãn/tên ô (*Họ và tên, Tên khách hàng, Số CCCD/CMND, Số giấy tờ, Ngày cấp…*), kể cả ô nằm trong khung (iframe).
+- Tự sửa số CCCD bị Excel làm mất số 0 đầu (11 số → thêm 0 cho đủ 12).
+- Ngày `5/8/2021`, `05-08-2021`, `2021-08-05` đều được đổi về `05/08/2021` (ô kiểu lịch thì đổi đúng định dạng của ô).
+
+## Cách 1 – Dán vào Console (F12)
+
+1. Mở trang nhập liệu, nhấn **F12** → tab **Console**.
+2. Lần đầu Chrome sẽ chặn dán: gõ chữ `allow pasting` rồi Enter.
+3. Mở `DienCCCD.js`, copy hết, dán vào Console, Enter.
+4. Hộp hỏi hiện ra → **Ctrl+V** dòng vừa copy trong Excel → Enter.
+5. Người tiếp theo: copy dòng mới trong Excel, bấm vào Console, gõ `dien()` Enter (hoặc nhấn **↑** rồi Enter). Tải lại trang thì dán lại mã như bước 3.
+
+**Lưu sẵn để khỏi dán lại:** F12 → tab **Sources** → **Snippets** → *New snippet*, dán mã, Ctrl+S. Từ đó chỉ cần F12 → Sources → Snippets → chọn snippet → **Ctrl+Enter**.
+
+## Cách 2 – Nút bấm trên thanh dấu trang (nhanh nhất, không cần F12)
+
+1. Nhấn **Ctrl+Shift+B** để hiện thanh dấu trang. Chuột phải lên thanh → *Thêm trang…*
+2. Tên: `Điền CCCD`. Ô URL: dán **toàn bộ** nội dung file `DienCCCD_bookmarklet.txt` (bắt đầu bằng `javascript:`).
+3. Dùng: copy dòng trong Excel → bấm nút **Điền CCCD** → Ctrl+V → Enter.
+
+## Nếu điền sai ô / không tìm thấy ô
+
+Chuột phải vào ô đó → **Kiểm tra (Inspect)** → xem `id="..."`. Mở `DienCCCD.js`, sửa dòng `CHON_O` ở đầu, ví dụ:
+
+```js
+const CHON_O = { hoTen: '#txtHoTen', soCCCD: '#txtSoGiayTo', ngayCap: '#dtNgayCap' };
+```
+
+Sửa xong nhớ tạo lại bookmarklet (hoặc gửi lại để được tạo giúp).
+
+## Lưu ý
+
+- Chỉ dán vào F12 mã mình đọc hiểu hoặc lấy từ nguồn tin cậy – dán mã lạ vào Console là cách kẻ gian hay dùng để lấy tài khoản.
+- Máy cơ quan có quy định về công cụ tự động thì hỏi bộ phận tin học trước khi dùng.
+- Luôn **nhìn lại 3 ô trước khi bấm Lưu**; mã chỉ điền thay, không bấm Lưu.
