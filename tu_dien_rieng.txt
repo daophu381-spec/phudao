@@ -1,0 +1,5 @@
+# Từ/tên riêng KHÔNG bị coi là sai chính tả (mỗi dòng một hoặc nhiều từ, không phân biệt hoa thường).
+# Dùng cho tên người, tên đất, tên công ty nước ngoài, chữ viết tắt viết thường mà chương trình hay báo nhầm.
+# Ví dụ:
+# samsung
+# mobifone

@@ -1,0 +1,8 @@
+# Lỗi chính tả riêng của cơ quan. Mỗi dòng một cặp:   sai => đúng
+# Dòng bắt đầu bằng # là ghi chú. Không phân biệt hoa thường khi tìm "sai"; chữ hoa đầu câu được giữ khi gợi ý.
+# Chương trình tự đọc file này nếu nó nằm cạnh chương trình hoặc trong thư mục đang chạy.
+#
+# Ví dụ (bỏ dấu # ở đầu dòng để dùng):
+# hộ cận ngheo => hộ cận nghèo
+# tổ tiết kiệm vay vốn => tổ tiết kiệm và vay vốn
+# cán bộ tín dụng xã => cán bộ tín dụng

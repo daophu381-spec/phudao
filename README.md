@@ -75,3 +75,10 @@ Có thể bỏ hẳn hộp thoại in: tạo shortcut Chrome riêng với tham s
 
 - Công cụ bấm theo **vị trí trên màn hình**. Nếu phần mềm đổi giao diện, đổi độ phân giải/zoom màn hình, hoặc cửa sổ không phóng to như lúc ghi, hãy nhấn **F7** và ghi lại.
 - Việc **duyệt** vẫn do bạn chịu trách nhiệm: luôn xem chứng từ trước khi bấm nút. Công cụ chỉ thay bạn các thao tác bấm.
+
+---
+
+## Kiểm tra văn bản theo Nghị định 30 (chương trình Python)
+
+Thư mục `kiemtra_vanban/`: đọc file Word, báo lỗi chính tả, viết hoa, dấu câu, thể thức Nghị định 30/2020/NĐ-CP và **chữ một mình một dòng**.
+Xem hướng dẫn trong [kiemtra_vanban/README.md](kiemtra_vanban/README.md). Trên Windows, kéo thả file `.docx` lên `kiem_tra.bat` là chạy.
