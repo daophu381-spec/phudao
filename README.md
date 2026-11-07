@@ -11,7 +11,25 @@ Công cụ chỉ bấm chuột/phím thay bạn, không sửa phần mềm giao 
 3. Nháy đúp vào file. Một nút nổi **▶ PHÊ DUYỆT + IN** hiện ra (luôn nằm trên cùng, kéo đi đâu cũng được).
 4. Để công cụ tự chạy khi bật máy: nhấn `Win + R`, gõ `shell:startup`, rồi tạo shortcut của file `.ahk` vào thư mục vừa mở.
 
-**Nên làm thêm:** vào *Settings → Printers*, đặt **HP LaserJet Pro M402** làm *máy in mặc định* và tắt mục *“Let Windows manage my default printer”*. Khi đó hộp thoại in luôn chọn sẵn M402, chỉ cần bấm Enter.
+### Tự chọn máy in đang cắm (không cần vào Windows chọn tay)
+
+Công cụ **tự làm** các việc sau, bạn không cần cài đặt gì thêm:
+
+- Tắt chế độ *“Let Windows manage my default printer”* (để Windows không tự đổi lại máy in mặc định lung tung).
+- Tìm máy in đang **bật/đang cắm**, ưu tiên máy có tên chứa `M402`, rồi đặt làm **máy in mặc định**. Bỏ qua các máy in ảo (PDF, XPS, OneNote, Fax...).
+- Làm việc này khi mở công cụ, **mỗi 20 giây**, và **ngay trước mỗi lần bấm In**. Đi giao dịch đổi sang cắm máy in khác thì công cụ tự đổi theo.
+- Nhấn **F10** để chọn ngay và xem tên máy in vừa được đặt.
+
+Nếu máy in của bạn không có chữ `M402` trong tên, mở `cau_hinh.ini`, sửa dòng `TenChua=` trong mục `[MayIn]` (để trống = lấy máy in thật đầu tiên đang online).
+
+**Cách thủ công (không dùng công cụ):** mở PowerShell và chạy một lần, hoặc lưu thành file `.ps1`:
+
+```powershell
+# Đặt máy in có tên chứa "M402" làm mặc định
+(New-Object -ComObject WScript.Network).SetDefaultPrinter((Get-Printer | Where-Object Name -like '*M402*' | Select-Object -First 1).Name)
+# Tắt "Let Windows manage my default printer"
+Set-ItemProperty 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows' -Name LegacyDefaultPrinterMode -Value 1
+```
 
 ## 2. Ghi các bước (1 lần)
 

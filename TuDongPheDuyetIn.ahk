@@ -9,6 +9,8 @@
 ;    F7        : Xoá hết các bước đã ghi để ghi lại từ đầu
 ;    F1        : Xem danh sách các bước đã ghi
 ;    F9        : CHẠY (Phê duyệt + In) - giống bấm nút to trên màn hình
+;    F10       : Tự chọn máy in đang cắm làm mặc định ngay (tự chạy cả khi mở
+;                công cụ, mỗi 20 giây và trước mỗi lần In)
 ;    Esc       : Dừng khẩn cấp khi đang chạy
 ;  Cấu hình được lưu trong file cau_hinh.ini cạnh file này.
 ; ======================================================================
@@ -23,6 +25,9 @@ global StopFlag := false
 
 KhoiTaoIni()
 A_IconTip := "Tự động Phê duyệt + In"
+TatWindowsTuDoiMayIn()
+TuChonMayIn()                       ; chọn máy in đang cắm ngay khi mở công cụ
+SetTimer(() => (Running ? 0 : TuChonMayIn()), 20000)   ; cứ 20 giây kiểm tra lại (cắm máy in khác thì tự đổi)
 TaoNutBam()
 
 ; ----------------------------- PHÍM TẮT --------------------------------
@@ -32,6 +37,10 @@ F5:: GhiBuocCho()
 F7:: XoaHetBuoc()
 F1:: XemDanhSach()
 F9:: SetTimer(ChayMotLan, -10)
+F10:: {                              ; chọn máy in ngay, có báo kết quả
+    ten := TuChonMayIn()
+    ThongBao(ten != "" ? "Máy in mặc định: " ten : "Không thấy máy in nào đang cắm/bật.")
+}
 ~Esc:: {
     global StopFlag
     if Running
@@ -46,7 +55,47 @@ KhoiTaoIni() {
         IniWrite(0,    IniFile, "Chung", "SoBuoc")
         IniWrite(700,  IniFile, "Chung", "NghiSauMoiBuoc_ms")
         IniWrite(20,   IniFile, "Chung", "ChoCuaSoToiDa_giay")
+        IniWrite("M402", IniFile, "MayIn", "TenChua")
     }
+}
+
+; ------------------- TỰ CHỌN MÁY IN ĐANG CẮM LÀM MẶC ĐỊNH ----------------
+; Ưu tiên máy in có tên chứa [MayIn] TenChua (mặc định "M402") và đang online.
+; Không thấy thì lấy máy in thật đầu tiên đang online (bỏ qua PDF, XPS, OneNote, Fax...).
+; Trả về tên máy in đã đặt, hoặc "" nếu không có máy in nào sẵn sàng.
+
+; Tắt chế độ "Let Windows manage my default printer" để Windows không tự đổi lại.
+TatWindowsTuDoiMayIn() {
+    try RegWrite(1, "REG_DWORD"
+        , "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Windows", "LegacyDefaultPrinterMode")
+}
+
+TuChonMayIn() {
+    try {
+        mau := IniRead(IniFile, "MayIn", "TenChua", "M402")
+        ao  := "PDF|XPS|OneNote|Fax|Microsoft Print|Snagit|AnyDesk|Send To|Root Print"
+        wmi := ComObjGet("winmgmts:\\.\root\cimv2")
+        uuTien := "", duPhong := "", macDinh := ""
+        for p in wmi.ExecQuery("SELECT Name, WorkOffline, Default FROM Win32_Printer") {
+            if p.WorkOffline                      ; máy in đang rút/tắt → bỏ qua
+                continue
+            if RegExMatch(p.Name, "i)(" ao ")")   ; máy in ảo → bỏ qua
+                continue
+            if p.Default
+                macDinh := p.Name
+            if (mau != "" && InStr(p.Name, mau) && uuTien = "")
+                uuTien := p.Name
+            if (duPhong = "")
+                duPhong := p.Name
+        }
+        chon := uuTien != "" ? uuTien : duPhong
+        if (chon = "")
+            return ""
+        if (chon != macDinh)                      ; chỉ đổi khi khác hiện tại
+            DllCall("winspool.drv\SetDefaultPrinterW", "WStr", chon)
+        return chon
+    }
+    return ""
 }
 
 SoBuoc() => Integer(IniRead(IniFile, "Chung", "SoBuoc", 0))
@@ -226,7 +275,8 @@ ChayMotLan() {
     }
     Running := true
     StopFlag := false
-    nghi    := Integer(IniRead(IniFile, "Chung", "NghiSauMoiBuoc_ms", 700))
+    TuChonMayIn()                       ; đảm bảo hộp thoại in chọn đúng máy đang cắm
+    nghi   := Integer(IniRead(IniFile, "Chung", "NghiSauMoiBuoc_ms", 700))
     choToiDa := Integer(IniRead(IniFile, "Chung", "ChoCuaSoToiDa_giay", 20))
 
     try {
