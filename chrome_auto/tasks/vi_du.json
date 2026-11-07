@@ -1,0 +1,13 @@
+{
+  "ten": "Ví dụ: mở trang, đọc tiêu đề, chụp ảnh",
+  "bien": {"trang": "https://example.com"},
+  "nghi_giua_cac_buoc_giay": 0.5,
+  "cac_buoc": [
+    {"lam": "mo_trang", "url": "{trang}", "mo_ta": "Mở trang"},
+    {"lam": "cho_xuat_hien", "chon": "h1", "mo_ta": "Chờ tiêu đề hiện"},
+    {"lam": "doc_chu", "chon": "h1", "mo_ta": "Đọc tiêu đề"},
+    {"lam": "chup_anh", "file": "example_{ngay}.png", "mo_ta": "Chụp ảnh trang"},
+    {"lam": "xac_nhan", "hoi": "Bấm liên kết đầu tiên?", "mo_ta": "Hỏi trước khi bấm"},
+    {"lam": "bam", "chon": "a", "mo_ta": "Bấm liên kết", "bo_qua_loi": true}
+  ]
+}
