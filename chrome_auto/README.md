@@ -38,3 +38,13 @@ Tìm `chon` nhanh: chạy `playwright codegen` rồi thao tác thử, nó sinh r
 - Windows: *Task Scheduler* → chạy `python chrome_auto.py chay tasks/<file>.json`.
 - Linux/Mac: `cron`.
 (Chrome mở bằng `mo-chrome` phải đang chạy.)
+
+## Ô nhập họ tên không dấu (theo căn cước)
+```json
+{"lam":"nhap","chon":"#hoTen","noi_dung":"{ho_ten}","bo_dau":true,"viet_hoa":true,
+ "go_tung_phim":true,"khong_co_canh_bao":".error"}
+```
+- `bo_dau`: tự đổi "Nguyễn Văn Đức" → "Nguyen Van Duc" (có cả đ/Đ). `viet_hoa`: ra chữ in hoa.
+- `go_tung_phim`: gõ từng phím như người thật thay vì gán thẳng.
+- Sau khi nhập, công cụ **luôn đọc lại ô**; nếu giá trị khác dự kiến thì dừng báo lỗi.
+- `khong_co_canh_bao`: selector của dòng cảnh báo; hiện ra là dừng.

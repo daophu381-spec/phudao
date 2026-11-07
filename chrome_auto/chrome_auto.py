@@ -9,7 +9,7 @@ Lệnh:
   python chrome_auto.py chay tasks/x.json    # chạy một công việc
   python chrome_auto.py chay tasks/x.json --thu   # chạy thử: chỉ in các bước, không bấm
 """
-import argparse, json, os, platform, re, shutil, subprocess, sys, time
+import argparse, json, os, unicodedata, platform, re, shutil, subprocess, sys, time
 from datetime import datetime
 from pathlib import Path
 
@@ -52,6 +52,12 @@ def log(msg):
         f.write(line + "\n")
 
 
+def bo_dau(x):
+    """'Nguyễn Văn Đức' -> 'Nguyen Van Duc' (cả đ/Đ)."""
+    x = x.replace("đ", "d").replace("Đ", "D")
+    return "".join(c for c in unicodedata.normalize("NFD", x) if unicodedata.category(c) != "Mn")
+
+
 def thay_bien(v, bien):
     if isinstance(v, str):
         return re.sub(r"\{(\w+)\}", lambda m: str(bien.get(m.group(1), m.group(0))), v)
@@ -68,7 +74,23 @@ def thuc_hien(page, ctx, buoc, bien):
     elif a == "bam":
         page.locator(sel).first.click(timeout=t)
     elif a == "nhap":
-        page.locator(sel).first.fill(b["noi_dung"], timeout=t)
+        nd = b["noi_dung"]
+        if b.get("bo_dau"):           # ô chỉ nhận không dấu
+            nd = bo_dau(nd)
+        if b.get("viet_hoa"):
+            nd = nd.upper()
+        o = page.locator(sel).first
+        if b.get("go_tung_phim"):     # gõ như người thật (kích hoạt bộ lọc phím của trang)
+            o.click(timeout=t); o.fill("", timeout=t)
+            o.press_sequentially(nd, delay=b.get("tre_ms", 60))
+        else:
+            o.fill(nd, timeout=t)
+        # Đọc lại giá trị: nếu trang từ chối/đổi ký tự thì báo lỗi, không đi tiếp
+        thuc = o.input_value(timeout=t)
+        if thuc != nd and not b.get("khong_kiem_tra"):
+            raise ValueError(f"Ô nhập khác dự kiến: mong '{nd}', thực tế '{thuc}'")
+        if b.get("khong_co_canh_bao") and page.locator(b["khong_co_canh_bao"]).first.is_visible():
+            raise ValueError("Trang đang hiện cảnh báo ở ô vừa nhập")
     elif a == "phim":
         page.keyboard.press(b["phim"])
     elif a == "chon_muc":
