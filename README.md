@@ -191,3 +191,35 @@ Nhập tay sai thì cứ làm lại bước C, máy ghi đè kịch bản mới 
 - F5 do công cụ bấm **không** làm tải lại trang; Unikey cũng không làm sai dấu.
 
 > Máy cơ quan có quy định về cài phần mềm/công cụ tự động thì hỏi bộ phận tin học trước. Việc kiểm tra và lưu hồ sơ vẫn là trách nhiệm của người nhập.
+
+---
+
+# Kiểm tra vay chồng chéo khi nhận Giấy ủy quyền (Mẫu 01/UQ)
+
+Mỗi hộ chỉ 1 người đứng tên vay. Khi hộ nộp giấy ủy quyền: **người được ủy quyền (mục II) là người vay**, các thành viên còn lại (mục I) phải tra xem đã có CIF/đang vay chưa. Phần tra này máy làm thay được, và **chỉ tra, không sửa gì trên hệ thống**.
+
+## 1. Lấy danh sách từ giấy vào `tra_cuu.xlsx`
+
+Dòng 1 là tên cột, nên có: `Họ và tên | Ngày sinh | Số CCCD | Vai trò` (thêm cột `Hộ` để ghi tên chủ hộ nếu tra nhiều hộ một lúc). Mỗi thành viên 1 dòng.
+
+- **Gõ tay**: chỉ cần gõ số CCCD (và năm sinh), tên có thể để trống – kết quả tra sẽ hiện tên trên hệ thống để đối chiếu.
+- **Dùng AI đọc ảnh** (chỉ khi cơ quan cho phép gửi ảnh giấy tờ khách hàng ra ngoài): mở file `Doc_giay_uy_quyen_bang_AI.txt`, làm theo hướng dẫn trong đó, copy bảng kết quả dán vào Excel.
+- Máy tự soát lỗi số CCCD: **thiếu/thừa chữ số**, hoặc **số thứ 4–6 không khớp năm sinh** (ví dụ sinh 1990 thì CCCD dạng `xxx090...` hoặc `xxx190...`). Dòng sai sẽ tô vàng trong kết quả.
+
+## 2. Dạy máy tra cứu (1 lần)
+
+1. Mở Chrome bằng `MoChrome.bat`, vào **màn hình tra cứu khách hàng/CIF**.
+2. Nháy đúp `BatDau.bat` → chọn **`4`** → Enter → Enter.
+3. Tra tay **người ở dòng 2** của `tra_cuu.xlsx` như mọi ngày: bấm chuột vào ô tra cứu, gõ số CCCD, bấm phím tìm (Enter/F5...).
+4. Khi kết quả hiện ra: **giữ phím Ctrl và bấm chuột** vào từng chỗ cần lấy (số CIF, tên, dư nợ, trạng thái...). Chỗ được chọn có viền đỏ.
+5. Bấm phím để màn hình sẵn sàng tra người tiếp (F2/Esc... nếu cần), quay lại cửa sổ đen nhấn **Enter**.
+
+## 3. Tra cả danh sách
+
+`BatDau.bat` → chọn **`5`** → Enter → Enter. Máy tra lần lượt từng người, xong tự mở file **`ket_qua_tra_cuu.xlsx`**: mỗi người 1 dòng, thêm các cột `KQ1, KQ2...` là chữ máy đọc được ở các chỗ bạn đã Ctrl+bấm, và cột `Canh_bao`.
+
+- Thành viên (không phải người vay) mà **có CIF đang có dư nợ** → hộ đang vay chồng chéo, xử lý theo quy định.
+- Dòng **tô vàng** phải xem lại tay: số CCCD nghi sai, hoặc kết quả giống hệt người trước (máy đọc lúc màn hình chưa kịp đổi – khi đó trong kịch bản tra cứu tăng `CHO 1` thành `CHO 2`).
+- Người không có CIF máy sẽ ghi đúng chữ phần mềm hiện ra (vd *Không tìm thấy*) hoặc `(không thấy)`.
+
+Kết quả tra cứu chỉ để hỗ trợ; quyết định cho vay vẫn theo kiểm tra của cán bộ.

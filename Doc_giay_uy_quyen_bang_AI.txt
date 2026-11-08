@@ -1,0 +1,25 @@
+CÂU LỆNH CHO AI ĐỌC GIẤY ỦY QUYỀN (Mẫu 01/UQ - NHCSXH)
+=======================================================
+CHỈ DÙNG KHI CƠ QUAN ĐÃ CHO PHÉP gửi ảnh giấy tờ của khách hàng cho dịch vụ AI.
+Cách dùng: gửi ảnh (chụp thẳng, đủ sáng, rõ cả bảng mục I và dòng mục II), rồi dán nguyên đoạn dưới đây.
+Kết quả: copy bảng 1 dán vào tra_cuu.xlsx để máy tra CIF; bảng 2 là thông tin người đứng tên vay.
+LUÔN SOÁT LẠI SỐ CCCD VỚI GIẤY - chữ viết tay AI có thể đọc nhầm.
+
+------------------------- copy từ dòng dưới -------------------------
+Đây là ảnh Giấy ủy quyền Mẫu 01/UQ của Ngân hàng Chính sách xã hội, phần viết tay do hộ gia đình điền.
+Hãy đọc và trả lời ĐÚNG theo mẫu sau, không thêm lời giải thích:
+
+BẢNG 1 - Thành viên hộ (mục I), mỗi người 1 dòng, dạng bảng có các cột:
+TT | Họ và tên | Ngày sinh | Số CCCD | Nơi cư trú | Vai trò
+- Vai trò ghi "NGƯỜI VAY" cho người được ủy quyền ở mục II (đối chiếu theo STT, họ tên, số CCCD), những người khác ghi "Thành viên".
+
+BẢNG 2 - Người được ủy quyền (mục II):
+Họ và tên | STT | Ngày sinh | Số CCCD | Ngày cấp | Nơi cấp
+
+Quy tắc:
+1. Họ tên viết có dấu, đúng như trên giấy. Ngày viết dạng dd/mm/yyyy.
+2. Không được đoán. Chữ số nào đọc không chắc thì thay bằng dấu ? (ví dụ 0010?0012345).
+3. Tự kiểm tra từng số CCCD: phải đủ 12 chữ số; chữ số thứ 4 là 0 hoặc 1 nếu sinh năm 19xx, 2 hoặc 3 nếu sinh năm 20xx; chữ số thứ 5-6 phải bằng 2 số cuối năm sinh.
+4. Kiểm tra: người ở mục II có đúng là 1 người trong bảng mục I không; số người ghi ở mục I có khớp số dòng không; có ai dưới 18 tuổi tính đến ngày lập giấy không.
+
+CẦN KIỂM TRA LẠI: liệt kê mọi chỗ không chắc, số CCCD sai quy tắc 3, hoặc điểm bất thường ở quy tắc 4. Không có thì ghi "Không có".
