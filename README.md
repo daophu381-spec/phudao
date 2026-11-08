@@ -120,61 +120,72 @@ Sửa xong nhớ tạo lại bookmarklet (hoặc gửi lại để được tạ
 
 ---
 
-# Nhập hàng loạt từ Excel bằng phím (Enter, F5, F2, Lên/Xuống) – `NhapTuExcel.py`
+# Nhập hàng loạt từ Excel bằng phím (Enter, F5, F2, Lên/Xuống)
 
-Dành cho phần mềm nghiệp vụ trên web điều khiển bằng bàn phím. Chỉ cần mã (selector) của **ô đầu tiên**, phần còn lại máy gõ phím y như tay bạn, theo các bước ghi trong `kich_ban.txt`.
+**Không cần biết lập trình.** Bạn nhập tay 1 khách hàng như mọi ngày, máy ghi lại bạn đã bấm những phím gì, rồi tự làm y hệt cho các khách còn lại trong Excel. Không phải viết code, không phải tìm mã ô.
 
-Công cụ điều khiển **chính cửa sổ Chrome bạn đã đăng nhập** (không mở Chrome mới, không cần đăng nhập lại), không gửi dữ liệu đi đâu.
+Công cụ chỉ gõ phím vào Chrome của bạn, không gửi dữ liệu đi đâu.
 
-## Cài đặt (1 lần)
+## A. Cài đặt (làm 1 lần, khoảng 10 phút)
 
-1. Cài **Python 3** từ <https://www.python.org> – khi cài nhớ tick *Add python.exe to PATH*. (Máy cơ quan khoá cài đặt thì nhờ tin học.)
-2. Nháy đúp `CaiDat.bat`.
-3. **Đóng hết Chrome**, mở lại bằng `MoChrome.bat`. Đây là một Chrome riêng: đăng nhập phần mềm 1 lần, lần sau nó nhớ. Mỗi lần dùng công cụ thì mở Chrome bằng file này.
+1. **Cài Python**: vào <https://www.python.org/downloads> → bấm nút *Download Python* màu vàng → mở file vừa tải.
+   ⚠️ Ở màn hình cài đầu tiên, **tick ô "Add python.exe to PATH"** ở dưới cùng, rồi bấm *Install Now*.
+   (Đã cài rồi mà quên tick thì gỡ đi cài lại, nhớ tick.)
+2. Tải cả thư mục công cụ về máy, để vào ví dụ `D:\NhapTuDong\`.
+3. Nháy đúp **`CaiDat.bat`**. Chờ chữ chạy xong, hiện *Xong* thì nhấn phím bất kỳ để đóng.
+4. **Đóng hết Chrome**, rồi nháy đúp **`MoChrome.bat`**. Một cửa sổ Chrome mới mở ra → đăng nhập phần mềm nghiệp vụ như bình thường. Lần sau Chrome này nhớ đăng nhập.
+   👉 Mỗi lần muốn dùng công cụ, luôn mở Chrome bằng `MoChrome.bat` (có thể kéo file này ra màn hình Desktop cho tiện).
 
-## Chuẩn bị Excel `du_lieu.xlsx`
+## B. Chuẩn bị file Excel
 
-- Dòng 1 là tên cột, viết liền không dấu, ví dụ: `Ho_Ten | CCCD | Ngay_Cap | Ma_Thon`.
-- Mỗi dòng sau là 1 khách hàng. Cột mã (mã thôn, mã tổ…) nên **định dạng Text** để giữ số 0 đầu (`03` chứ không thành `3`). Cột CCCD bị mất số 0 đầu thì công cụ tự thêm lại.
-- Ngày để kiểu ngày Excel hay gõ `15/08/2021` đều được, máy gõ ra `15/08/2021`.
+- Đặt tên file là **`du_lieu.xlsx`** và để cùng thư mục công cụ (hoặc lúc chạy kéo thả file vào cửa sổ đen cũng được).
+- **Dòng 1** là tên cột, đặt tên gì cũng được (*Họ và tên, Số CCCD, Ngày cấp, Mã thôn...*).
+- **Từ dòng 2**, mỗi dòng là 1 khách hàng.
+- Cột có số 0 đứng đầu (mã thôn `03`, mã tổ...) thì bôi đen cột → chuột phải → *Format Cells* → chọn **Text** rồi mới gõ.
 
-## Viết kịch bản `kich_ban.txt`
+## C. Dạy máy (làm 1 lần cho mỗi loại màn hình)
 
-Ghi lại đúng thứ tự bạn bấm khi nhập 1 khách hàng, mỗi thao tác 1 dòng (hướng dẫn chi tiết ở đầu file):
+1. Trên Chrome (mở bằng `MoChrome.bat`), vào màn hình **nhập khách hàng mới**.
+2. Nháy đúp **`BatDau.bat`** → gõ **`1`** → Enter → Enter.
+3. Cửa sổ đen hiện thông tin khách ở **dòng 2** của Excel. Bạn chuyển sang Chrome và **nhập tay khách đó** như mọi ngày:
+   - Bấm chuột vào ô đầu tiên, sau đó cố gắng **chỉ dùng bàn phím** (Enter, F5, mũi tên, F2...).
+   - Gõ **đúng y như trong Excel** (để máy biết ô nào lấy cột nào).
+   - Lưu xong (và bấm F2 về màn hình nhập mới nếu bạn hay làm vậy).
+4. Quay lại cửa sổ đen, nhấn **Enter**. Máy in ra các bước nó đã học, ví dụ:
+   ```
+   BAM #txtHoTen
+   GO {Họ và tên}
+   PHIM Enter
+   GO {Số CCCD}
+   PHIM Enter
+   PHIM F5
+   GO {Mã thôn}
+   PHIM Enter
+   ...
+   ```
+   Thấy chữ trong ngoặc `{ }` là tên cột Excel → máy đã hiểu đúng ô đó lấy cột nào.
 
-```
-TRANG Giao dịch          <- chữ có trong tiêu đề tab Chrome
-BAM #txtHoTen            <- chỉ cần selector ô đầu tiên
-GO {Ho_Ten}
-PHIM Enter
-GO {CCCD}
-PHIM Enter
-PHIM F5                  <- mở danh mục
-CHO 0.8
-GO {Ma_Thon}             <- gõ mã vào ô tìm kiếm của danh mục
-PHIM Enter
-DUNG Kiểm tra trước khi Lưu
-PHIM Enter
-PHIM F2
-```
+Nhập tay sai thì cứ làm lại bước C, máy ghi đè kịch bản mới (bản cũ giữ trong `kich_ban_cu.txt`).
 
-- Danh mục F5 **có ô tìm kiếm**: dùng `GO {Ma_...}` rồi `PHIM Enter` (chắc chắn nhất).
-- Danh mục **không có ô tìm kiếm**: dùng `CHON {Ten_To}` để bấm đúng dòng có chữ đó, hoặc `PHIM ArrowDown x2` nếu vị trí luôn cố định.
-- `CHO_THAY Danh mục thôn` chờ đến khi bảng bật lên mới gõ – dùng khi mạng lúc nhanh lúc chậm.
-- Lấy selector ô đầu tiên: chuột phải vào ô → *Kiểm tra* → thấy `id="txtHoTen"` thì ghi `#txtHoTen`, hoặc chuột phải dòng bôi xanh → *Copy* → *Copy selector*. Ô nằm trong khung (iframe) công cụ cũng tự tìm được.
+## D. Cho máy nhập
 
-## Chạy
+1. Mở màn hình nhập khách hàng mới trên Chrome.
+2. Nháy đúp **`BatDau.bat`**:
+   - Gõ **`2`** → máy nhập **1 khách tiếp theo** để bạn xem thử.
+   - Gõ **`3`** → máy nhập **tất cả khách còn lại**.
+3. Máy hỏi *"Bắt đầu từ dòng ... ?"* → nhấn Enter (máy tự nhớ đã nhập tới đâu). Nhấn Enter lần nữa để bắt đầu.
+4. Sau mỗi khách, máy **dừng lại chờ bạn nhìn màn hình**: đúng thì nhấn **Enter** để làm khách tiếp; gõ **`b`** để bỏ qua; gõ **`q`** để dừng.
 
-Mở màn hình nhập khách hàng mới trên Chrome (mở bằng `MoChrome.bat`), rồi:
+- Đang chạy muốn dừng gấp: bấm vào cửa sổ đen, nhấn **Ctrl+C**.
+- Gặp trục trặc (không thấy ô, danh mục không bật lên...) máy **tự dừng**, không gõ bừa. Lần sau chạy, máy tự hỏi bắt đầu lại từ đúng dòng đó.
+- Trong lúc máy chạy, **đừng bấm chuột sang tab khác**.
+- Kết quả từng khách ghi trong `nhat_ky.csv` (mở bằng Excel).
 
-| Việc | Lệnh (hoặc nháy đúp `ChayNhap.bat`) |
-|---|---|
-| Thử 1 khách đầu tiên | `python NhapTuExcel.py --thu` |
-| Nhập tất cả | `python NhapTuExcel.py` |
-| Chạy tiếp từ dòng 15 | `python NhapTuExcel.py --tu 15` |
-| Dừng gấp | `Ctrl+C` ở cửa sổ đen |
+## E. Khi đã quen (không bắt buộc)
 
-- Gặp lỗi (không thấy ô, danh mục không bật lên…) công cụ **dừng ngay**, báo dòng Excel đang làm và lệnh để chạy tiếp, không gõ bừa.
-- Kết quả từng dòng ghi vào `nhat_ky.csv`.
-- Lúc đầu nên để dòng `DUNG` trước bước Lưu để nhìn lại từng khách; chạy ổn rồi mới xoá.
-- Phím do công cụ gửi đi thẳng vào trang web: F5 **không** làm tải lại trang, Unikey cũng không làm sai dấu. Trong lúc chạy đừng bấm chuột sang tab khác.
+- Chạy ổn rồi, muốn máy **không dừng hỏi sau mỗi khách**: chọn **`4`** trong menu (mở kịch bản bằng Notepad), xoá dòng cuối `DUNG ...`, bấm Ctrl+S lưu lại.
+- Mạng chậm, máy gõ nhanh quá làm sót: trong kịch bản sửa `NGHI 0.3` thành `NGHI 0.8`.
+- Các lệnh có thể viết trong kịch bản: xem file mẫu `kich_ban_mau.txt` (có giải thích từng lệnh).
+- F5 do công cụ bấm **không** làm tải lại trang; Unikey cũng không làm sai dấu.
+
+> Máy cơ quan có quy định về cài phần mềm/công cụ tự động thì hỏi bộ phận tin học trước. Việc kiểm tra và lưu hồ sơ vẫn là trách nhiệm của người nhập.
