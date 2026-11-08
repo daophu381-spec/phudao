@@ -1,0 +1,46 @@
+# ================== KỊCH BẢN NHẬP 1 KHÁCH HÀNG ==================
+# Mỗi dòng là 1 thao tác, làm lần lượt từ trên xuống, lặp lại cho mỗi dòng Excel.
+# Dòng bắt đầu bằng # là ghi chú, máy bỏ qua.
+#
+#   TRANG <chữ>        Tab Chrome có chữ này trong tiêu đề/địa chỉ (để trống = hỏi)
+#   EXCEL <tên file>   File Excel dữ liệu (dòng 1 là tên cột)
+#   NGHI  <giây>       Nghỉ sau mỗi thao tác. Mạng/máy chậm thì tăng lên 0.5 - 1
+#
+#   BAM <selector>     Bấm chuột vào ô (vd: BAM #txtHoTen). Chỉ cần cho ô đầu tiên.
+#   GO {Tên_cột}       Gõ giá trị cột Excel vào ô đang đứng. Gõ chữ cố định: GO 01
+#   XOA                Xoá sạch ô đang đứng (Ctrl+A rồi Backspace)
+#   PHIM <phím> [xN]   Bấm phím: Enter, Tab, F2, F5, Escape, ArrowDown, ArrowUp...
+#                      Bấm nhiều lần: PHIM ArrowDown x2
+#   CHO <giây>         Chờ thêm (vd: CHO 1.5) cho phần mềm xử lý
+#   CHO_THAY <chữ>     Chờ đến khi trên màn hình hiện chữ này (vd bảng F5 bật lên)
+#   CHON {Tên_cột}     Bấm vào dòng có đúng chữ đó trong bảng danh mục vừa bật lên
+#   DUNG <lời nhắc>    Tạm dừng để bạn nhìn lại; Enter = tiếp, b = bỏ qua, q = dừng hẳn
+# ================================================================
+
+TRANG Giao dịch
+EXCEL du_lieu.xlsx
+NGHI 0.3
+
+# 1. Đứng vào ô đầu tiên, gõ Họ tên, Enter sang ô tiếp
+BAM #txtHoTen
+GO {Ho_Ten}
+PHIM Enter
+
+# 2. Số CCCD, Enter; Ngày cấp, Enter
+GO {CCCD}
+PHIM Enter
+GO {Ngay_Cap}
+PHIM Enter
+
+# 3. Ô Thôn/Xã: F5 mở danh mục, gõ mã thôn vào ô tìm kiếm, Enter chọn
+PHIM F5
+CHO 0.8
+GO {Ma_Thon}
+PHIM Enter
+
+# 4. Nhìn lại trước khi lưu (xoá dòng DUNG khi đã chạy ổn)
+DUNG Kiểm tra lại thông tin trước khi Lưu
+PHIM Enter
+CHO 1
+PHIM F2
+CHO 1

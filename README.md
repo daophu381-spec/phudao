@@ -117,3 +117,64 @@ Sửa xong nhớ tạo lại bookmarklet (hoặc gửi lại để được tạ
 - Chỉ dán vào F12 mã mình đọc hiểu hoặc lấy từ nguồn tin cậy – dán mã lạ vào Console là cách kẻ gian hay dùng để lấy tài khoản.
 - Máy cơ quan có quy định về công cụ tự động thì hỏi bộ phận tin học trước khi dùng.
 - Luôn **nhìn lại 3 ô trước khi bấm Lưu**; mã chỉ điền thay, không bấm Lưu.
+
+---
+
+# Nhập hàng loạt từ Excel bằng phím (Enter, F5, F2, Lên/Xuống) – `NhapTuExcel.py`
+
+Dành cho phần mềm nghiệp vụ trên web điều khiển bằng bàn phím. Chỉ cần mã (selector) của **ô đầu tiên**, phần còn lại máy gõ phím y như tay bạn, theo các bước ghi trong `kich_ban.txt`.
+
+Công cụ điều khiển **chính cửa sổ Chrome bạn đã đăng nhập** (không mở Chrome mới, không cần đăng nhập lại), không gửi dữ liệu đi đâu.
+
+## Cài đặt (1 lần)
+
+1. Cài **Python 3** từ <https://www.python.org> – khi cài nhớ tick *Add python.exe to PATH*. (Máy cơ quan khoá cài đặt thì nhờ tin học.)
+2. Nháy đúp `CaiDat.bat`.
+3. **Đóng hết Chrome**, mở lại bằng `MoChrome.bat`. Đây là một Chrome riêng: đăng nhập phần mềm 1 lần, lần sau nó nhớ. Mỗi lần dùng công cụ thì mở Chrome bằng file này.
+
+## Chuẩn bị Excel `du_lieu.xlsx`
+
+- Dòng 1 là tên cột, viết liền không dấu, ví dụ: `Ho_Ten | CCCD | Ngay_Cap | Ma_Thon`.
+- Mỗi dòng sau là 1 khách hàng. Cột mã (mã thôn, mã tổ…) nên **định dạng Text** để giữ số 0 đầu (`03` chứ không thành `3`). Cột CCCD bị mất số 0 đầu thì công cụ tự thêm lại.
+- Ngày để kiểu ngày Excel hay gõ `15/08/2021` đều được, máy gõ ra `15/08/2021`.
+
+## Viết kịch bản `kich_ban.txt`
+
+Ghi lại đúng thứ tự bạn bấm khi nhập 1 khách hàng, mỗi thao tác 1 dòng (hướng dẫn chi tiết ở đầu file):
+
+```
+TRANG Giao dịch          <- chữ có trong tiêu đề tab Chrome
+BAM #txtHoTen            <- chỉ cần selector ô đầu tiên
+GO {Ho_Ten}
+PHIM Enter
+GO {CCCD}
+PHIM Enter
+PHIM F5                  <- mở danh mục
+CHO 0.8
+GO {Ma_Thon}             <- gõ mã vào ô tìm kiếm của danh mục
+PHIM Enter
+DUNG Kiểm tra trước khi Lưu
+PHIM Enter
+PHIM F2
+```
+
+- Danh mục F5 **có ô tìm kiếm**: dùng `GO {Ma_...}` rồi `PHIM Enter` (chắc chắn nhất).
+- Danh mục **không có ô tìm kiếm**: dùng `CHON {Ten_To}` để bấm đúng dòng có chữ đó, hoặc `PHIM ArrowDown x2` nếu vị trí luôn cố định.
+- `CHO_THAY Danh mục thôn` chờ đến khi bảng bật lên mới gõ – dùng khi mạng lúc nhanh lúc chậm.
+- Lấy selector ô đầu tiên: chuột phải vào ô → *Kiểm tra* → thấy `id="txtHoTen"` thì ghi `#txtHoTen`, hoặc chuột phải dòng bôi xanh → *Copy* → *Copy selector*. Ô nằm trong khung (iframe) công cụ cũng tự tìm được.
+
+## Chạy
+
+Mở màn hình nhập khách hàng mới trên Chrome (mở bằng `MoChrome.bat`), rồi:
+
+| Việc | Lệnh (hoặc nháy đúp `ChayNhap.bat`) |
+|---|---|
+| Thử 1 khách đầu tiên | `python NhapTuExcel.py --thu` |
+| Nhập tất cả | `python NhapTuExcel.py` |
+| Chạy tiếp từ dòng 15 | `python NhapTuExcel.py --tu 15` |
+| Dừng gấp | `Ctrl+C` ở cửa sổ đen |
+
+- Gặp lỗi (không thấy ô, danh mục không bật lên…) công cụ **dừng ngay**, báo dòng Excel đang làm và lệnh để chạy tiếp, không gõ bừa.
+- Kết quả từng dòng ghi vào `nhat_ky.csv`.
+- Lúc đầu nên để dòng `DUNG` trước bước Lưu để nhìn lại từng khách; chạy ổn rồi mới xoá.
+- Phím do công cụ gửi đi thẳng vào trang web: F5 **không** làm tải lại trang, Unikey cũng không làm sai dấu. Trong lúc chạy đừng bấm chuột sang tab khác.
