@@ -6,10 +6,7 @@ NHẬP TỪ EXCEL VÀO PHẦN MỀM NGHIỆP VỤ TRÊN CHROME BẰNG PHÍM (Ent
 - Đọc từng dòng Excel, làm đúng các bước ghi trong file kich_ban.txt.
 - Không gửi dữ liệu đi đâu; chỉ gõ phím vào trang đang mở.
 
-Chạy:  python NhapTuExcel.py                -> chạy tất cả các dòng
-       python NhapTuExcel.py --thu          -> chỉ chạy dòng đầu tiên để thử
-       python NhapTuExcel.py --tu 15        -> chạy từ dòng 15 của Excel (chạy tiếp khi bị dừng)
-       python NhapTuExcel.py --tu 15 --den 20
+Cách chạy: nháy đúp file BatDau.bat rồi chọn số trong menu.
 Dừng gấp: bấm Ctrl+C trong cửa sổ đen.
 """
 import argparse
@@ -207,50 +204,204 @@ def chay_mot_dong(page, buoc, du_lieu, nghi):
         time.sleep(nghi)
 
 
-# ---------------------------------------------------------------- Chính
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--kich-ban", default=os.path.join(THU_MUC, "kich_ban.txt"))
-    ap.add_argument("--excel", default="")
-    ap.add_argument("--thu", action="store_true", help="chỉ chạy dòng đầu tiên")
-    ap.add_argument("--tu", type=int, default=0, help="chạy từ dòng Excel số này")
-    ap.add_argument("--den", type=int, default=0, help="chạy đến dòng Excel số này")
-    ap.add_argument("--cong", default=CONG_CHROME)
-    a = ap.parse_args()
+# ---------------------------------------------------------------- Ghi kịch bản tự động
+JS_GHI = r"""
+(() => {
+  if (window.__dangGhiPhim) return; window.__dangGhiPhim = 1;
+  const gui = (x) => { try { window.__ghiPhim(x); } catch (e) {} };
+  const sel = (el) => {
+    if (el.id && document.querySelectorAll('#' + CSS.escape(el.id)).length === 1) return '#' + CSS.escape(el.id);
+    if (el.name && document.getElementsByName(el.name).length === 1) return el.tagName.toLowerCase() + '[name="' + el.name + '"]';
+    const p = []; let n = el;
+    while (n && n.nodeType === 1 && n !== document.body) {
+      let i = 1, s = n; while ((s = s.previousElementSibling)) if (s.tagName === n.tagName) i++;
+      p.unshift(n.tagName.toLowerCase() + ':nth-of-type(' + i + ')'); n = n.parentElement;
+    }
+    return 'body > ' + p.join(' > ');
+  };
+  const laO = (el) => el && el.matches && el.matches('input, textarea, select, [contenteditable="true"]');
+  const gt = (el) => (el && 'value' in el) ? el.value : null;
+  document.addEventListener('focusin', (e) => { if (laO(e.target)) gui({loai: 'vao', sel: sel(e.target), giaTri: gt(e.target)}); }, true);
+  document.addEventListener('mousedown', (e) => {
+    const t = e.target;
+    if (laO(t)) gui({loai: 'chuot_o', sel: sel(t)});
+    else gui({loai: 'chuot_chu', chu: (t.innerText || '').trim().slice(0, 80)});
+  }, true);
+  const DB = /^(Enter|Tab|Escape|F\d{1,2}|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|PageUp|PageDown|Home|End|Delete|Insert)$/;
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(k)) return;
+    if (!DB.test(k) && !e.ctrlKey && !e.altKey) return;
+    let ten = (e.ctrlKey ? 'Control+' : '') + (e.altKey ? 'Alt+' : '') + (e.shiftKey && (DB.test(k) || e.ctrlKey || e.altKey) ? 'Shift+' : '') + (k.length === 1 ? k.toUpperCase() : k);
+    const a = document.activeElement;
+    gui({loai: 'phim', phim: ten, sel: laO(a) ? sel(a) : null, giaTri: laO(a) ? gt(a) : null});
+  }, true);
+})();
+"""
 
-    cai_dat, buoc = doc_kich_ban(a.kich_ban)
-    file_excel = a.excel or cai_dat["EXCEL"]
-    if not os.path.isabs(file_excel):
-        file_excel = os.path.join(THU_MUC, file_excel)
-    tieu_de, ds = doc_excel(file_excel, cai_dat["SHEET"] or None)
-    ds = [(so, d) for so, d in ds if (not a.tu or so >= a.tu) and (not a.den or so <= a.den)]
-    if a.thu:
-        ds = ds[:1]
+
+def _chuan(s):
+    return re.sub(r"\s+", " ", str(s)).strip().lower()
+
+
+def _tim_cot(gia_tri, mau):
+    """Giá trị vừa gõ trùng với cột nào của dòng Excel mẫu."""
+    g = _chuan(gia_tri)
+    if not g:
+        return None
+    for cot, v in mau.items():
+        if _chuan(v) == g:
+            return cot
+    so = re.sub(r"\D", "", g)
+    for cot, v in mau.items():  # ngày gõ 05082021 hay 5/8/2021 vẫn nhận ra
+        vs = re.sub(r"\D", "", str(v))
+        if so and len(so) >= 6 and vs == so:
+            return cot
+    return None
+
+
+def tao_kich_ban(su_kien, mau):
+    dong = []
+    da_bam_dau = False
+    gia_tri_luc_vao = {}
+    t_truoc = None
+
+    def go(sel, gia_tri):
+        cu = gia_tri_luc_vao.get(sel, "")
+        if gia_tri is None or gia_tri == cu:
+            return
+        if cu:
+            dong.append("XOA")
+        cot = _tim_cot(gia_tri, mau)
+        dong.append(f"GO {{{cot}}}" if cot else f"GO {gia_tri}")
+        gia_tri_luc_vao[sel] = gia_tri
+
+    for t, sk in su_kien:
+        if t_truoc is not None and t - t_truoc > 1.5 and dong:
+            dong.append("CHO 1")
+        t_truoc = t
+        loai = sk.get("loai")
+        if loai == "vao":
+            gia_tri_luc_vao[sk["sel"]] = sk.get("giaTri") or ""
+        elif loai == "chuot_o":
+            if not da_bam_dau or dong:
+                dong.append(f"BAM {sk['sel']}")
+            da_bam_dau = True
+        elif loai == "chuot_chu":
+            chu_bam = sk.get("chu") or ""
+            if chu_bam and "\n" not in chu_bam:
+                cot = _tim_cot(chu_bam, mau)
+                dong.append(f"CHON {{{cot}}}" if cot else f"CHON {chu_bam}")
+        elif loai == "phim":
+            if sk.get("sel"):
+                go(sk["sel"], sk.get("giaTri"))
+            phim = sk["phim"]
+            if dong and dong[-1].startswith(f"PHIM {phim}"):
+                m = re.match(r"^PHIM (\S+)(?: x(\d+))?$", dong[-1])
+                dong[-1] = f"PHIM {phim} x{int(m.group(2) or 1) + 1}"
+            else:
+                dong.append(f"PHIM {phim}")
+            if phim.startswith("F") and phim[1:].isdigit():
+                dong.append("CHO 0.8")  # chờ bảng danh mục bật lên
+    # bỏ các CHO thừa đứng liền nhau
+    gon = []
+    for d in dong:
+        if d.startswith("CHO") and gon and gon[-1].startswith("CHO"):
+            continue
+        gon.append(d)
+    return gon
+
+
+def ghi_kich_ban(page, file_excel, sheet, duong_dan_kb):
+    _, ds = doc_excel(file_excel, sheet or None)
     if not ds:
-        print("Excel không có dòng nào cần nhập.")
-        return
-    print(f"Excel: {os.path.basename(file_excel)} | Cột: {', '.join(t for t in tieu_de if t)}")
-    print(f"Sẽ nhập {len(ds)} khách hàng (dòng {ds[0][0]} đến {ds[-1][0]}).")
+        print("File Excel chưa có dữ liệu (dòng 1 là tên cột, từ dòng 2 là khách hàng).")
+        return None
+    so_mau, mau = ds[0]
+    print("\n=========== GHI KỊCH BẢN ===========")
+    print(f"Bạn hãy nhập TAY khách hàng ở dòng {so_mau} của Excel, đúng như mọi ngày:")
+    for cot, v in mau.items():
+        print(f"     {cot}: {v}")
+    print("Máy sẽ ghi lại các phím bạn bấm (Enter, F5, F2, mũi tên...) và các chữ bạn gõ.")
+    print("  - Bắt đầu bằng việc BẤM CHUỘT vào ô đầu tiên, sau đó cố gắng chỉ dùng bàn phím.")
+    print("  - Gõ đúng như trong Excel (để máy nhận ra ô nào lấy cột nào).")
+    print("  - Lưu xong khách đó (và bấm F2 nếu cần về màn hình nhập mới) thì quay lại cửa sổ đen này nhấn Enter.\n")
 
+    su_kien = []
+    page.expose_binding("__ghiPhim", lambda nguon, x: su_kien.append((time.time(), x)))
+    page.add_init_script(JS_GHI)
+    for khung in page.frames:
+        try:
+            khung.evaluate(JS_GHI)
+        except Exception:
+            pass
+
+    import threading
+    xong = threading.Event()
+    threading.Thread(target=lambda: (input(">>> Nhập xong khách mẫu thì nhấn Enter ở đây... "), xong.set()),
+                     daemon=True).start()
+    page.bring_to_front()
+    da_tiem = set()
+    while not xong.is_set():
+        page.wait_for_timeout(300)
+        for khung in page.frames:  # khung mới hiện ra cũng phải ghi
+            if khung not in da_tiem:
+                try:
+                    khung.evaluate(JS_GHI)
+                    da_tiem.add(khung)
+                except Exception:
+                    pass
+
+    buoc = tao_kich_ban(su_kien, mau)
+    if not buoc:
+        print("Không ghi được phím nào. Hãy chắc là bạn nhập trên đúng tab Chrome rồi ghi lại.")
+        return None
+    if os.path.exists(duong_dan_kb):
+        os.replace(duong_dan_kb, duong_dan_kb.replace(".txt", "_cu.txt"))
+    from urllib.parse import urlparse
+    may_chu = urlparse(page.url).netloc or page.title()
+    with open(duong_dan_kb, "w", encoding="utf-8") as f:
+        f.write("# Kịch bản do máy tự ghi lúc " + dt.datetime.now().strftime("%d/%m/%Y %H:%M") + "\n")
+        f.write("# Sửa được bằng Notepad. Hướng dẫn các lệnh: xem README.\n")
+        f.write(f"TRANG {may_chu}\nEXCEL {os.path.basename(file_excel)}\n")
+        if sheet:
+            f.write(f"SHEET {sheet}\n")
+        f.write("NGHI 0.3\n\n")
+        f.write("\n".join(buoc) + "\n")
+        f.write("\n# Dừng để bạn nhìn lại sau mỗi khách. Chạy ổn rồi thì xoá dòng dưới đây.\n")
+        f.write("DUNG Xong 1 khách - kiểm tra trên màn hình\n")
+    print("\nĐã ghi kịch bản:")
+    for b in buoc:
+        print("   " + b)
+    khong_khop = [b for b in buoc if b.startswith("GO ") and "{" not in b]
+    if khong_khop:
+        print("\nChú ý: các dòng sau gõ chữ CỐ ĐỊNH (không thấy trùng cột Excel nào), mọi khách sẽ gõ y như vậy:")
+        for b in khong_khop:
+            print("   " + b)
+        print("Nếu chỗ đó phải lấy theo Excel: lần ghi sau gõ đúng y như ô Excel, hoặc mở kịch bản sửa thành GO {Tên_cột}.")
+    return so_mau
+
+
+# ---------------------------------------------------------------- Chạy
+def ket_noi_chrome(p, cong):
+    try:
+        return p.chromium.connect_over_cdp(cong)
+    except Exception:
+        print("\nKHÔNG KẾT NỐI ĐƯỢC CHROME.")
+        print("Hãy: 1) Đóng hết Chrome  2) Mở Chrome bằng file MoChrome.bat  3) Đăng nhập, mở màn hình nhập liệu")
+        print("     4) Chạy lại công cụ này.")
+        return None
+
+
+def chay(page, cai_dat, buoc, ds, file_tien_do):
     nhat_ky = os.path.join(THU_MUC, "nhat_ky.csv")
     moi = not os.path.exists(nhat_ky)
-    with sync_playwright() as p, open(nhat_ky, "a", newline="", encoding="utf-8-sig") as f_log:
+    xong = 0
+    with open(nhat_ky, "a", newline="", encoding="utf-8-sig") as f_log:
         log = csv.writer(f_log)
         if moi:
             log.writerow(["Thoi_gian", "Dong_Excel", "Ket_qua", "Ghi_chu", "Du_lieu"])
-        try:
-            browser = p.chromium.connect_over_cdp(a.cong)
-        except Exception:
-            print("Không kết nối được Chrome. Hãy đóng hết Chrome rồi mở bằng file MoChrome.bat, đăng nhập, "
-                  "mở đúng màn hình nhập liệu rồi chạy lại.")
-            input("Nhấn Enter để thoát...")
-            return
-        page = chon_trang(browser, cai_dat["TRANG"])
-        print(f"Nhập vào tab: {page.title()}")
-        input("Mở sẵn màn hình nhập khách hàng mới, rồi nhấn Enter ở đây để bắt đầu (Ctrl+C để dừng)...")
         page.bring_to_front()
-
-        xong = 0
         for so, du_lieu in ds:
             ten = next(iter(du_lieu.values()), "")
             print(f"- Dòng {so}: {ten} ...", end=" ", flush=True)
@@ -260,22 +411,127 @@ def main():
                 print("xong")
                 xong += 1
                 log.writerow([bay_gio, so, "XONG", "", " | ".join(du_lieu.values())])
+                ghi_tien_do(file_tien_do, so)
             except BoQua:
                 print("bỏ qua")
                 log.writerow([bay_gio, so, "BO_QUA", "", " | ".join(du_lieu.values())])
+                ghi_tien_do(file_tien_do, so)
             except KeyboardInterrupt:
                 print("\nĐã dừng theo yêu cầu.")
                 log.writerow([bay_gio, so, "DUNG", "người dùng dừng", " | ".join(du_lieu.values())])
-                print(f"Kiểm tra lại khách dòng {so} trên phần mềm. Chạy tiếp: python NhapTuExcel.py --tu {so}")
+                print(f"Hãy xem khách dòng {so} trên phần mềm đã lưu chưa. Lần chạy sau công cụ sẽ hỏi bắt đầu từ dòng {so}.")
                 break
             except Exception as e:
                 print("LỖI")
                 print(f"   {e}")
                 log.writerow([bay_gio, so, "LOI", str(e), " | ".join(du_lieu.values())])
-                print(f"Đã dừng để không nhập bừa. Xem lại màn hình, rồi chạy tiếp: python NhapTuExcel.py --tu {so}")
+                print(f"Đã dừng để không nhập bừa. Xem lại màn hình. Lần chạy sau công cụ sẽ hỏi bắt đầu từ dòng {so}.")
                 break
             f_log.flush()
-        print(f"Đã nhập xong {xong}/{len(ds)} khách. Nhật ký: nhat_ky.csv")
+    print(f"\nĐã nhập {xong}/{len(ds)} khách. Chi tiết từng dòng: nhat_ky.csv")
+
+
+def doc_tien_do(f):
+    try:
+        return int(open(f, encoding="utf-8").read().strip())
+    except Exception:
+        return 0
+
+
+def ghi_tien_do(f, so):
+    with open(f, "w", encoding="utf-8") as g:
+        g.write(str(so))
+
+
+def hoi_file_excel(mac_dinh):
+    if os.path.exists(mac_dinh):
+        return mac_dinh
+    print(f"\nChưa thấy file Excel '{os.path.basename(mac_dinh)}' trong thư mục công cụ.")
+    print("Hãy KÉO file Excel của bạn thả vào cửa sổ đen này rồi nhấn Enter")
+    print("(hoặc copy file đó vào thư mục công cụ và đổi tên thành du_lieu.xlsx):")
+    while True:
+        duong = input("> ").strip().strip('"').strip("'").strip()
+        if duong.lower().endswith((".xlsx", ".xlsm")) and os.path.exists(duong):
+            return duong
+        print("Không đúng file Excel (.xlsx). Thử lại:")
+
+
+def menu(a):
+    kb_path = a.kich_ban
+    file_tien_do = os.path.join(THU_MUC, "tien_do.txt")
+    co_kb = os.path.exists(kb_path)
+    cai_dat, buoc = doc_kich_ban(kb_path) if co_kb else ({"TRANG": "", "NGHI": 0.3, "EXCEL": "du_lieu.xlsx", "SHEET": ""}, [])
+    file_excel = a.excel or cai_dat["EXCEL"]
+    if not os.path.isabs(file_excel):
+        file_excel = os.path.join(THU_MUC, file_excel)
+
+    print("==================================================")
+    print("   NHẬP TỰ ĐỘNG TỪ EXCEL VÀO PHẦN MỀM (bằng phím)")
+    print("==================================================")
+    print("  1. Ghi kịch bản: tôi nhập tay 1 khách, máy học theo")
+    print("  2. Thử nhập 1 khách tiếp theo")
+    print("  3. Nhập tất cả các khách còn lại")
+    print("  4. Mở kịch bản bằng Notepad để xem/sửa")
+    print("  0. Thoát")
+    chon = input("Chọn số rồi nhấn Enter: ").strip()
+    if chon not in ("1", "2", "3", "4"):
+        return
+    if chon == "4":
+        if co_kb:
+            os.startfile(kb_path) if hasattr(os, "startfile") else print(open(kb_path, encoding="utf-8").read())
+        else:
+            print("Chưa có kịch bản. Chọn 1 để ghi.")
+        return
+    if chon in ("2", "3") and not buoc:
+        print("Chưa có kịch bản. Hãy chọn 1 để ghi kịch bản trước.")
+        return
+
+    file_excel = hoi_file_excel(file_excel)
+    with sync_playwright() as p:
+        browser = ket_noi_chrome(p, a.cong)
+        if browser is None:
+            return
+        page = chon_trang(browser, "" if chon == "1" else cai_dat["TRANG"])
+        print(f"Đang làm việc với tab: {page.title()}")
+        if chon == "1":
+            input("Mở sẵn màn hình nhập khách hàng MỚI trên Chrome, rồi nhấn Enter ở đây...")
+            so_mau = ghi_kich_ban(page, file_excel, cai_dat.get("SHEET"), kb_path)
+            if so_mau:
+                ghi_tien_do(file_tien_do, so_mau)
+                print(f"\nKhách dòng {so_mau} bạn đã nhập tay. Lần sau chọn 2 để máy thử nhập khách tiếp theo.")
+            return
+
+        _, ds = doc_excel(file_excel, cai_dat["SHEET"] or None)
+        da_xong = doc_tien_do(file_tien_do)
+        con_lai = [x for x in ds if x[0] > da_xong]
+        if not con_lai:
+            print("Đã nhập hết các dòng trong Excel.")
+            tl = input("Gõ số dòng muốn nhập lại từ đó (hoặc Enter để thoát): ").strip()
+            if not tl.isdigit():
+                return
+            con_lai = [x for x in ds if x[0] >= int(tl)]
+        else:
+            tl = input(f"Bắt đầu từ dòng {con_lai[0][0]} của Excel ({con_lai[0][1] and next(iter(con_lai[0][1].values()))})? "
+                       f"Enter = đồng ý, hoặc gõ số dòng khác: ").strip()
+            if tl.isdigit():
+                con_lai = [x for x in ds if x[0] >= int(tl)]
+        if chon == "2":
+            con_lai = con_lai[:1]
+        if not con_lai:
+            print("Không có dòng nào để nhập.")
+            return
+        print(f"Sẽ nhập {len(con_lai)} khách (dòng {con_lai[0][0]} đến {con_lai[-1][0]}). Dừng gấp: Ctrl+C.")
+        input("Mở sẵn màn hình nhập khách hàng mới trên Chrome, rồi nhấn Enter ở đây để bắt đầu...")
+        chay(page, cai_dat, buoc, con_lai, file_tien_do)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--kich-ban", default=os.path.join(THU_MUC, "kich_ban.txt"))
+    ap.add_argument("--excel", default="")
+    ap.add_argument("--cong", default=CONG_CHROME)
+    a = ap.parse_args()
+    menu(a)
 
 
 if __name__ == "__main__":
