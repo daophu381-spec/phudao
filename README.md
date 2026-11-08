@@ -86,6 +86,8 @@ File `DienCCCD.js`: copy 1 dòng trong Excel (3 ô **Họ tên | Số CCCD | Ng�
 - Tự sửa số CCCD bị Excel làm mất số 0 đầu (11 số → thêm 0 cho đủ 12).
 - Ngày `5/8/2021`, `05-08-2021`, `2021-08-05` đều được đổi về `05/08/2021` (ô kiểu lịch thì đổi đúng định dạng của ô).
 
+**Quét mã QR trên thẻ CCCD gắn chip:** dán (hoặc dùng máy quét mã vạch bắn) chuỗi QR của thẻ vào hộp hỏi, dạng `001090012345|123456789|Nguyễn Văn An|01011990|Nam|Địa chỉ|05082021`. Máy tự lấy đúng Họ tên, Số CCCD, Ngày cấp (bỏ qua ngày sinh, địa chỉ). Máy quét phải gõ được tiếng Việt có dấu (chế độ Unicode); máy quét rẻ hay làm hỏng dấu tên – thử trước bằng Notepad.
+
 ## Cách 1 – Dán vào Console (F12)
 
 1. Mở trang nhập liệu, nhấn **F12** → tab **Console**.

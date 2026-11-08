@@ -49,7 +49,23 @@
     if (p[0].length === 4) { y = p[0]; m = p[1]; d = p[2]; } else { d = p[0]; m = p[1]; y = p[2]; }
     return { d: d.padStart(2, '0'), m: m.padStart(2, '0'), y: y };
   };
+  /* Mã QR trên thẻ CCCD gắn chip (quét bằng máy quét/điện thoại):
+     SốCCCD|SốCMND cũ|Họ tên|Ngày sinh ddmmyyyy|Giới tính|Địa chỉ|Ngày cấp ddmmyyyy */
+  const docQR = (dong) => {
+    const p = dong.trim().split('|');
+    if (p.length < 7 || !/^\d{12}$/.test(p[0].trim())) return null;
+    const nc = p[6].trim();
+    const kq = {
+      hoTen: p[2].trim().replace(/\s+/g, ' '),
+      soCCCD: p[0].trim(),
+      ngayCap: /^\d{8}$/.test(nc) ? nc.slice(0, 2) + '/' + nc.slice(2, 4) + '/' + nc.slice(4) : nc
+    };
+    if (VIET_HOA_HO_TEN) kq.hoTen = kq.hoTen.toLocaleUpperCase('vi');
+    return kq;
+  };
   const tachDong = (dong) => {
+    const qr = docQR(dong);
+    if (qr) return qr;
     let phan = dong.split('\t');
     if (phan.length < 2) phan = dong.split(/[|;\n]/);
     if (phan.length < 2) phan = dong.split(',');
