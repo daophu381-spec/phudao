@@ -1,0 +1,11 @@
+﻿THƯ MỤC NÀY DÀNH CHO WINDOWS 64 BIT
+
+Bỏ file driver bản 64 bit vào đây (file .zip hoặc đã giải nén đều được).
+Cách lấy driver (làm 1 lần, trên máy có mạng):
+  1. Vào support.hp.com → gõ "LaserJet Pro M402" → chọn đúng máy → chọn Windows → chọn "64-bit".
+  2. Tải driver dạng "Driver - Universal Print Driver" hoặc "Basic driver / PCL 6" (loại giải nén ra thư mục
+     có file .inf, KHÔNG phải bộ cài .exe).
+  3. Bỏ file .zip vào thư mục này (công cụ tự giải nén).
+Nếu tải về chỉ có file .exe: chạy nó, chọn giải nén ("Extract/Unzip"), lấy thư mục sau khi giải nén bỏ vào đây.
+
+Windows 10/11 thường đã có sẵn driver M402; chưa có file ở đây công cụ vẫn thử dùng driver sẵn có của Windows.

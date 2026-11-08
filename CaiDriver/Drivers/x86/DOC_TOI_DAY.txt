@@ -1,0 +1,5 @@
+﻿THƯ MỤC NÀY DÀNH CHO WINDOWS 32 BIT
+
+Bỏ file driver bản 32 bit (còn gọi x86) vào đây, file .zip hoặc đã giải nén đều được.
+Cách lấy driver giống thư mục x64, chỉ khác là ở support.hp.com phải chọn bản "32-bit".
+Không bỏ lẫn driver 64 bit vào đây (công cụ sẽ không cài được).

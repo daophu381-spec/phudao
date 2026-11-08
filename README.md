@@ -71,6 +71,20 @@ Có thể bỏ hẳn hộp thoại in: tạo shortcut Chrome riêng với tham s
 `"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk-printing`
 (đóng hết Chrome trước khi mở bằng shortcut này). Khi đó bấm In là in ngay ra máy in mặc định (HP M402), nên không cần ghi bước F6 cho hộp thoại in.
 
+## 6. Cài driver HP M402 bằng 1 cú bấm đúp
+
+Thư mục `CaiDriver/`. Bấm đúp **`CaiDriverM402.bat`** là xong, không cần chọn gì:
+
+1. Tự xin quyền Admin.
+2. Tự nhận **Windows 32 hay 64 bit** và phiên bản Windows, rồi lấy driver ở thư mục `Drivers\x64` hoặc `Drivers\x86` (không bao giờ cài nhầm bản).
+3. Khởi động lại Print Spooler (nguyên nhân hay làm cài lúc được lúc không).
+4. Nạp driver, tìm đúng tên mẫu M402/M403 PCL 6 trong file `.inf` và cài.
+5. Tạo máy in (USB tự nhận, hoặc `CaiDriverM402.bat -IP 192.168.x.x` cho máy in mạng) và đặt làm mặc định.
+
+**Chuẩn bị 1 lần:** tải driver trên support.hp.com (chọn đúng Windows 64 bit và 32 bit), bỏ file `.zip` vào `Drivers\x64` / `Drivers\x86`. Xem file `DOC_TOI_DAY.txt` trong mỗi thư mục. Chép cả thư mục `CaiDriver` ra USB là mang đi cài ở máy nào cũng được, không cần mạng. Chưa bỏ driver vào thì công cụ vẫn thử dùng driver M402 có sẵn của Windows 10/11.
+
+Mọi bước và lỗi được ghi vào `CaiDriver\cai_driver.log`. Cài không được thì gửi file này để xem nguyên nhân.
+
 ## Lưu ý
 
 - Công cụ bấm theo **vị trí trên màn hình**. Nếu phần mềm đổi giao diện, đổi độ phân giải/zoom màn hình, hoặc cửa sổ không phóng to như lúc ghi, hãy nhấn **F7** và ghi lại.
