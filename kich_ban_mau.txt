@@ -14,6 +14,7 @@
 #   CHO <giây>         Chờ thêm (vd: CHO 1.5) cho phần mềm xử lý
 #   CHO_THAY <chữ>     Chờ đến khi trên màn hình hiện chữ này (vd bảng F5 bật lên)
 #   CHON {Tên_cột}     Bấm vào dòng có đúng chữ đó trong bảng danh mục vừa bật lên
+#   FILE <tên file>     Thao tác ngay sau sẽ mở hộp "Open": máy tự chọn file này (tìm ở Desktop...)
 #   DUNG <lời nhắc>    Tạm dừng để bạn nhìn lại; Enter = tiếp, b = bỏ qua, q = dừng hẳn
 # ================================================================
 

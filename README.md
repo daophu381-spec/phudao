@@ -167,6 +167,13 @@ Công cụ chỉ gõ phím vào Chrome của bạn, không gửi dữ liệu đi
    ```
    Thấy chữ trong ngoặc `{ }` là tên cột Excel → máy đã hiểu đúng ô đó lấy cột nào.
 
+**Bước gắn ảnh/chữ ký (bấm Space → hộp "Open" → chọn file):** cứ làm như thường lúc dạy máy – bấm Space, chọn file chữ ký (ví dụ `chu_ky.jpg` ở Desktop), bấm Open. Máy tự ghi thành:
+```
+FILE chu_ky.jpg
+PHIM Space
+```
+Khi chạy, hộp "Open" **không hiện ra nữa** – máy chọn sẵn file đó thay bạn. Máy tìm file theo tên ở **Desktop** (kể cả Desktop trong OneDrive), thư mục công cụ, Downloads, Documents, Pictures. Đừng đổi tên hay xoá file chữ ký. Muốn dùng file ở chỗ khác thì sửa dòng `FILE` thành đường dẫn đầy đủ, ví dụ `FILE D:\Anh\chu_ky.jpg`.
+
 Nhập tay sai thì cứ làm lại bước C, máy ghi đè kịch bản mới (bản cũ giữ trong `kich_ban_cu.txt`).
 
 ## D. Cho máy nhập

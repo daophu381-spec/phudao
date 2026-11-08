@@ -79,7 +79,7 @@ def doc_kich_ban(duong_dan):
                 cai_dat[lenh] = tham_so
             elif lenh == "NGHI":
                 cai_dat["NGHI"] = float(tham_so.replace(",", "."))
-            elif lenh in ("BAM", "GO", "XOA", "PHIM", "CHO", "CHO_THAY", "CHON", "DUNG", "LAY"):
+            elif lenh in ("BAM", "GO", "XOA", "PHIM", "CHO", "CHO_THAY", "CHON", "DUNG", "LAY", "FILE"):
                 buoc.append((so, lenh, tham_so))
             else:
                 raise SystemExit(f"kich_ban.txt dòng {so}: không hiểu lệnh '{lenh}'")
@@ -166,15 +166,71 @@ def doc_chu_o(el):
         return ""
 
 
+def tim_file(ten):
+    """Tìm file ảnh/chữ ký: đường dẫn đầy đủ, hoặc chỉ tên file (tìm ở Desktop, thư mục công cụ...)."""
+    ten = os.path.expandvars(os.path.expanduser(ten.strip().strip('"')))
+    if os.path.isabs(ten):
+        return ten if os.path.isfile(ten) else None
+    nha = os.path.expanduser("~")
+    import glob
+    thu_muc = [THU_MUC, os.path.join(nha, "Desktop"), os.path.join(nha, "OneDrive", "Desktop")]
+    thu_muc += glob.glob(os.path.join(nha, "OneDrive*", "Desktop"))
+    thu_muc += [os.path.join(nha, x) for x in ("Downloads", "Documents", "Pictures")]
+    ten_rieng = re.sub(r"^desktop[\\/]", "", ten, flags=re.I)
+    for d in thu_muc:
+        for t in (ten, ten_rieng):
+            f = os.path.join(d, t)
+            if os.path.isfile(f):
+                return f
+    return None
+
+
 def chay_mot_dong(page, buoc, du_lieu, nghi):
     kb = page.keyboard
     ket_qua = {}
+    file_cho = [None]  # file sẽ chọn khi hộp "Open file" bật lên ở thao tác kế tiếp
+    tt = getattr(page, "_chon_file", None)
+    if tt is None:
+        # Canh hộp "Open file" suốt lúc chạy: có file chờ sẵn thì chọn file đó thay người
+        tt = {"f": None, "xong": False}
+
+        def _khi_mo_hop(hop):
+            if tt["f"]:
+                hop.set_files(tt["f"])
+                tt["f"] = None
+                tt["xong"] = True
+            else:
+                print("\n   (!) Hộp chọn file bật lên nhưng kịch bản không có lệnh FILE ngay trước - bỏ qua")
+        page.on("filechooser", _khi_mo_hop)
+        page._chon_file = tt
+
+    def lam(viec):
+        if not file_cho[0]:
+            return viec()
+        tt["f"], tt["xong"] = file_cho[0], False
+        ten = os.path.basename(file_cho[0])
+        file_cho[0] = None
+        viec()
+        het = time.time() + 10
+        while not tt["xong"] and time.time() < het:
+            page.wait_for_timeout(200)
+        if not tt["xong"]:
+            tt["f"] = None
+            raise RuntimeError(f"chờ 10 giây không thấy hộp chọn file (Open) bật lên để chọn {ten}")
+
     for so_kb, lenh, ts in buoc:
+        if lenh == "FILE":
+            f = tim_file(thay_cot(ts, du_lieu, so_kb))
+            if not f:
+                raise RuntimeError(f"[kịch bản dòng {so_kb}] không tìm thấy file '{ts}' (để file ở Desktop "
+                                   f"hoặc thư mục công cụ, hoặc ghi đường dẫn đầy đủ)")
+            file_cho[0] = f
+            continue
         if lenh == "BAM":
             el = cho_den_khi(lambda: tim_trong_moi_khung(page, ts))
             if el is None:
                 raise RuntimeError(f"[kịch bản dòng {so_kb}] không thấy ô '{ts}' trên màn hình")
-            el.click()
+            lam(el.click)
         elif lenh == "GO":
             gia_tri = thay_cot(ts, du_lieu, so_kb)
             if gia_tri:
@@ -186,9 +242,11 @@ def chay_mot_dong(page, buoc, du_lieu, nghi):
             m = re.match(r"^(\S+)(?:\s+x\s*(\d+))?$", ts, re.I)
             if not m:
                 raise SystemExit(f"kich_ban.txt dòng {so_kb}: viết sai lệnh PHIM '{ts}' (vd: PHIM ArrowDown x2)")
-            for _ in range(int(m.group(2) or 1)):
-                kb.press(m.group(1))
-                time.sleep(nghi)
+            def bam_phim():
+                for _ in range(int(m.group(2) or 1)):
+                    kb.press(m.group(1))
+                    time.sleep(nghi)
+            lam(bam_phim)
             continue
         elif lenh == "CHO":
             time.sleep(float(ts.replace(",", ".")))
@@ -204,7 +262,7 @@ def chay_mot_dong(page, buoc, du_lieu, nghi):
             el = cho_den_khi(lambda: tim_chu_trong_moi_khung(page, muc), giay=10)
             if el is None:
                 raise RuntimeError(f"[kịch bản dòng {so_kb}] trong danh sách không có dòng '{muc}'")
-            el.click()
+            lam(el.click)
         elif lenh == "LAY":
             # LAY <tên cột kết quả> <selector>: đọc chữ trên màn hình ghi vào Excel kết quả
             ten_cot, _, sel = ts.partition(" ")
@@ -251,10 +309,19 @@ JS_GHI = r"""
     if (laO(t)) gui({loai: 'chuot_o', sel: sel(t)});
     else gui({loai: 'chuot_chu', chu: (t.innerText || '').trim().slice(0, 80)});
   }, true);
+  const laOChu = (el) => el && el.matches && el.matches('textarea, [contenteditable="true"], input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=reset]):not([type=image])');
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t && t.type === 'file' && t.files && t.files.length) gui({loai: 'file', ten: t.files[0].name});
+  }, true);
   const DB = /^(Enter|Tab|Escape|F\d{1,2}|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|PageUp|PageDown|Home|End|Delete|Insert)$/;
   document.addEventListener('keydown', (e) => {
     const k = e.key;
     if (['Control', 'Alt', 'Shift', 'Meta'].includes(k)) return;
+    if (k === ' ' && !laOChu(document.activeElement)) {  /* Space trên nút (vd mở chọn ảnh/chữ ký) */
+      gui({loai: 'phim', phim: 'Space', sel: null, giaTri: null});
+      return;
+    }
     if (!DB.test(k) && !e.ctrlKey && !e.altKey) return;
     let ten = (e.ctrlKey ? 'Control+' : '') + (e.altKey ? 'Alt+' : '') + (e.shiftKey && (DB.test(k) || e.ctrlKey || e.altKey) ? 'Shift+' : '') + (k.length === 1 ? k.toUpperCase() : k);
     const a = document.activeElement;
@@ -311,6 +378,12 @@ def tao_kich_ban(su_kien, mau):
             if not da_bam_dau or dong:
                 dong.append(f"BAM {sk['sel']}")
             da_bam_dau = True
+        elif loai == "file":
+            # chèn FILE trước thao tác vừa làm bật hộp "Open"
+            for vt in range(len(dong) - 1, -1, -1):
+                if dong[vt].startswith(("PHIM", "BAM", "CHON")):
+                    dong.insert(vt, f"FILE {sk['ten']}")
+                    break
         elif loai == "lay":
             so_lay = sum(1 for d in dong if d.startswith("LAY ")) + 1
             if dong and not dong[-1].startswith(("CHO", "LAY")):
