@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+nhat_ky.csv
+tien_do*.txt
+ket_qua_tra_cuu*.xlsx
