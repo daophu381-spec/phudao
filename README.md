@@ -85,6 +85,25 @@ Thư mục `CaiDriver/`. Bấm đúp **`CaiDriverM402.bat`** là xong, không c�
 
 Mọi bước và lỗi được ghi vào `CaiDriver\cai_driver.log`. Cài không được thì gửi file này để xem nguyên nhân.
 
+## 7. Máy khác chia sẻ máy in (vd 10.5.208.100) mà không kết nối được
+
+Thư mục `KetNoiMayIn/`, gồm 2 công cụ bấm đúp:
+
+| Chạy trên máy nào | File | Làm gì |
+|---|---|---|
+| **Máy cắm máy in** (10.5.208.100) | `MayChuMoChiaSe.bat` | Đặt mạng thành *Private*, bật firewall *File and Printer Sharing*, bật dịch vụ, sửa lỗi 0x11b, chia sẻ máy in M402 và in ra đường dẫn `\\IP\tên`. |
+| **Máy cần in** | `KetNoiMayInMang.bat` | Dò mạng (ping, cổng 445/135) và báo đúng chỗ hỏng, hỏi tài khoản nếu cần, liệt kê máy in chia sẻ, thêm máy in, tự sửa lỗi 0x11b/0x709/0xbcb. Không được thì dùng cách dự phòng: driver cài sẵn + cổng `\\IP\tên`. |
+
+Thứ tự nên làm: (1) chạy `MayChuMoChiaSe.bat` trên 10.5.208.100, (2) chạy `KetNoiMayInMang.bat` trên máy cần in.
+
+**Các nguyên nhân hay gặp:**
+- **Wifi bật cách ly thiết bị (AP/Client Isolation):** các máy bắt wifi không thấy nhau dù cùng mạng. Công cụ báo "không tới được máy", cách xử lý là cắm dây LAN hoặc nhờ quản trị wifi tắt cách ly.
+- **Mạng đặt là Public:** Windows chặn chia sẻ. `MayChuMoChiaSe.bat` tự đổi thành Private.
+- **Bị hỏi tài khoản:** máy chia sẻ phải có tài khoản Windows *có mật khẩu*. Nhập đúng tên và mật khẩu đó (không dùng PIN).
+- **Lỗi 0x0000011b / 0x00000709 / 0x00000bcb:** do các bản vá bảo mật Windows. Hai công cụ trên tự sửa.
+
+Nhật ký: `ket_noi_may_in.log` và `may_chu_mo_chia_se.log`. Còn lỗi thì gửi file log kèm mã lỗi.
+
 ## Lưu ý
 
 - Công cụ bấm theo **vị trí trên màn hình**. Nếu phần mềm đổi giao diện, đổi độ phân giải/zoom màn hình, hoặc cửa sổ không phóng to như lúc ghi, hãy nhấn **F7** và ghi lại.
