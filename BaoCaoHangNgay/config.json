@@ -1,0 +1,8 @@
+{
+  "url": "https://example.com/duong-dan-file.xlsx",
+  "ten_file": "du_lieu.xlsx",
+  "gemini_cmd": "gemini",
+  "claude_cmd": "claude",
+  "yeu_cau_nhan_vien": "Doc file dinh kem. Trich xuat cac so lieu chinh, bang tong hop, bat thuong. Tra ve dang gach dau dong, KHONG ket luan.",
+  "yeu_cau_giam_doc": "Ban la giam doc. Kiem tra ket qua cua nhan vien (Gemini), doi chieu voi file goc, sua loi neu co, roi viet bao cao ngay bang tieng Viet: 1) Tom tat 2) So lieu chinh 3) Bat thuong/rui ro 4) De xuat. Dung Markdown (#, ##, -)."
+}
